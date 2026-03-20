@@ -1,3 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>zaloOpa translate</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      color: #202124;
+    }
+
+    .topbar {
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .topbar span {
+      color: #1a73e8;
+    }
+
+    .wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .translator {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      color: gray;
+    }
+
+    textarea, .output {
+      flex: 1;
+      border: none;
+      padding: 20px;
+      font-size: 22px;
+      outline: none;
+      resize: none;
+    }
+
+    .output {
+      background: #f1f3f4;
+    }
+
+    .center-controls {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    button {
+      padding: 15px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 30px;
+      margin: 10px;
+      cursor: pointer;
+    }
+
+    .pay-btn {
+      background: #1a73e8;
+      color: white;
+    }
+
+    .translate-btn {
+      background: #34a853;
+      color: white;
+    }
+
+    .translate-btn:disabled {
+      background: gray;
+    }
+
+    .status {
+      margin-top: 10px;
+      color: gray;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <span>zaloOpa</span> translate
+</div>
+
+<div class="wrapper">
+
+  <div class="translator">
+    
+    <div class="panel">
+      <div class="panel-header">Введите текст</div>
+      <textarea id="sourceText" placeholder="Введите текст..."></textarea>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Перевод</div>
+      <div id="resultText" class="output">Здесь будет перевод</div>
+    </div>
+
+  </div>
+
+  <div class="center-controls">
+    <button class="pay-btn" id="payBtn">Оплатить 1 ₽</button>
+    <button class="translate-btn" id="translateBtn" disabled>Перевести</button>
+    <div class="status" id="statusText">Сначала оплатите 1 ₽</div>
+  </div>
+
+</div>
+
 <script>
   const payBtn = document.getElementById("payBtn");
   const translateBtn = document.getElementById("translateBtn");
@@ -7,89 +139,45 @@
 
   let isPaid = false;
 
+  // ДЕМО ОПЛАТА
   payBtn.addEventListener("click", async () => {
-    statusText.textContent = "Открываем оплату 1 ₽...";
+    statusText.textContent = "Оплата...";
     payBtn.disabled = true;
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(r => setTimeout(r, 1000));
 
     isPaid = true;
     translateBtn.disabled = false;
-    statusText.textContent = "Оплата получена. Теперь можно переводить 1 текст.";
+    statusText.textContent = "Оплачено. Можешь переводить.";
     payBtn.textContent = "Оплачено ✅";
   });
 
-  function fakeTranslateToEnglish(text) {
-    const dictionary = {
-      "привет": "hello",
-      "как дела": "how are you",
-      "я": "I",
-      "ты": "you",
-      "мы": "we",
-      "люблю": "love",
-      "ненавижу": "hate",
-      "дом": "house",
-      "работа": "work",
-      "машина": "car",
-      "сегодня": "today",
-      "завтра": "tomorrow",
-      "хочу": "want",
-      "есть": "eat",
-      "спать": "sleep"
-    };
-
-    let out = text.toLowerCase();
-
-    for (const [ru, en] of Object.entries(dictionary)) {
-      const re = new RegExp(`\\b${ru}\\b`, "gi");
-      out = out.replace(re, en);
-    }
-
-    return out;
+  // ФЕЙК ПЕРЕВОД
+  function fakeTranslate(text) {
+    return text.split("").reverse().join("");
   }
 
-  function addRoastTone(text) {
-    const intros = [
-      "Well, obviously: ",
-      "In case that was somehow unclear: ",
-      "Brace yourself, because here it is: ",
-      "With unnecessary dramatic energy: ",
-      "Here comes the grand statement: "
+  // САРКАСТИЧНЫЙ СТИЛЬ (без оскорблений)
+  function roast(text) {
+    const intro = [
+      "Ну да, конечно: ",
+      "Как неожиданно: ",
+      "Сейчас будет гениально: "
     ];
 
-    const midPhrases = [
-      " truly groundbreaking,",
-      " with spectacular confidence,",
-      " as if the universe asked for it,",
-      " in all its dramatic glory,",
-      " with maximum theatrical effect,"
+    const ending = [
+      " Просто шедевр.",
+      " Гениально, правда.",
+      " Это было очевидно."
     ];
 
-    const endings = [
-      " You're welcome.",
-      " Try to keep up.",
-      " A masterpiece, really.",
-      " Stunningly obvious.",
-      " And yes, that was the point."
-    ];
+    let result =
+      intro[Math.floor(Math.random()*intro.length)] +
+      text +
+      ending[Math.floor(Math.random()*ending.length)];
 
-    const longExtras = [
-      " Honestly, this took far more ceremony than it deserved.",
-      " One could have said it simpler, but where is the fun in that?",
-      " The level of drama here is completely unnecessary, yet appreciated.",
-      " This could have been normal, but apparently we chose spectacle.",
-      " Remarkably intense for such a simple thought."
-    ];
-
-    const intro = intros[Math.floor(Math.random() * intros.length)];
-    const mid = midPhrases[Math.floor(Math.random() * midPhrases.length)];
-    const ending = endings[Math.floor(Math.random() * endings.length)];
-
-    let result = intro + text + mid + ending;
-
-    if (text.length > 120) {
-      const extra = longExtras[Math.floor(Math.random() * longExtras.length)];
-      result += extra;
+    if (text.length > 100) {
+      result += " Слишком много слов ради такой простой мысли.";
     }
 
     return result;
@@ -99,36 +187,32 @@
     const text = sourceText.value.trim();
 
     if (!isPaid) {
-      statusText.textContent = "Сначала оплатите 1 ₽.";
+      statusText.textContent = "Сначала оплатите.";
       return;
     }
 
     if (!text) {
-      statusText.textContent = "Введите текст для перевода.";
+      statusText.textContent = "Введите текст.";
       return;
     }
 
-    translateBtn.disabled = true;
     statusText.textContent = "Переводим...";
+    translateBtn.disabled = true;
 
-    try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise(r => setTimeout(r, 800));
 
-      const translated = fakeTranslateToEnglish(text);
-      const roastVersion = addRoastTone(translated);
+    const translated = fakeTranslate(text);
+    const styled = roast(translated);
 
-      resultText.textContent = roastVersion;
+    resultText.textContent = styled;
 
-      isPaid = false;
-      payBtn.disabled = false;
-      payBtn.textContent = "Оплатить 1 ₽";
-      translateBtn.disabled = true;
-      statusText.textContent = "Перевод готов. Для следующего перевода снова оплатите 1 ₽.";
-    } catch (error) {
-      statusText.textContent = "Ошибка перевода. Попробуйте ещё раз.";
-      translateBtn.disabled = false;
-    }
+    isPaid = false;
+    payBtn.disabled = false;
+    payBtn.textContent = "Оплатить 1 ₽";
+    translateBtn.disabled = true;
+    statusText.textContent = "Готово. Для нового перевода снова оплати.";
   });
 </script>
+
 </body>
 </html>
