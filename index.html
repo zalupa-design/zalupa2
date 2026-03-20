@@ -1,311 +1,134 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>zaloOpa translate</title>
-  <style>
-    * {
-      box-sizing: border-box;
+<script>
+  const payBtn = document.getElementById("payBtn");
+  const translateBtn = document.getElementById("translateBtn");
+  const sourceText = document.getElementById("sourceText");
+  const resultText = document.getElementById("resultText");
+  const statusText = document.getElementById("statusText");
+
+  let isPaid = false;
+
+  payBtn.addEventListener("click", async () => {
+    statusText.textContent = "Открываем оплату 1 ₽...";
+    payBtn.disabled = true;
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    isPaid = true;
+    translateBtn.disabled = false;
+    statusText.textContent = "Оплата получена. Теперь можно переводить 1 текст.";
+    payBtn.textContent = "Оплачено ✅";
+  });
+
+  function fakeTranslateToEnglish(text) {
+    const dictionary = {
+      "привет": "hello",
+      "как дела": "how are you",
+      "я": "I",
+      "ты": "you",
+      "мы": "we",
+      "люблю": "love",
+      "ненавижу": "hate",
+      "дом": "house",
+      "работа": "work",
+      "машина": "car",
+      "сегодня": "today",
+      "завтра": "tomorrow",
+      "хочу": "want",
+      "есть": "eat",
+      "спать": "sleep"
+    };
+
+    let out = text.toLowerCase();
+
+    for (const [ru, en] of Object.entries(dictionary)) {
+      const re = new RegExp(`\\b${ru}\\b`, "gi");
+      out = out.replace(re, en);
     }
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      color: #202124;
+    return out;
+  }
+
+  function addRoastTone(text) {
+    const intros = [
+      "Well, obviously: ",
+      "In case that was somehow unclear: ",
+      "Brace yourself, because here it is: ",
+      "With unnecessary dramatic energy: ",
+      "Here comes the grand statement: "
+    ];
+
+    const midPhrases = [
+      " truly groundbreaking,",
+      " with spectacular confidence,",
+      " as if the universe asked for it,",
+      " in all its dramatic glory,",
+      " with maximum theatrical effect,"
+    ];
+
+    const endings = [
+      " You're welcome.",
+      " Try to keep up.",
+      " A masterpiece, really.",
+      " Stunningly obvious.",
+      " And yes, that was the point."
+    ];
+
+    const longExtras = [
+      " Honestly, this took far more ceremony than it deserved.",
+      " One could have said it simpler, but where is the fun in that?",
+      " The level of drama here is completely unnecessary, yet appreciated.",
+      " This could have been normal, but apparently we chose spectacle.",
+      " Remarkably intense for such a simple thought."
+    ];
+
+    const intro = intros[Math.floor(Math.random() * intros.length)];
+    const mid = midPhrases[Math.floor(Math.random() * midPhrases.length)];
+    const ending = endings[Math.floor(Math.random() * endings.length)];
+
+    let result = intro + text + mid + ending;
+
+    if (text.length > 120) {
+      const extra = longExtras[Math.floor(Math.random() * longExtras.length)];
+      result += extra;
     }
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 28px;
+    return result;
+  }
+
+  translateBtn.addEventListener("click", async () => {
+    const text = sourceText.value.trim();
+
+    if (!isPaid) {
+      statusText.textContent = "Сначала оплатите 1 ₽.";
+      return;
     }
 
-    .brand {
-      font-size: 22px;
-      font-weight: 700;
+    if (!text) {
+      statusText.textContent = "Введите текст для перевода.";
+      return;
     }
 
-    .brand span {
-      color: #1a73e8;
-    }
+    translateBtn.disabled = true;
+    statusText.textContent = "Переводим...";
 
-    .wrapper {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 10px 24px 40px;
-    }
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-    .lang-row {
-      display: flex;
-      justify-content: center;
-      gap: 14px;
-      margin-bottom: 22px;
-      flex-wrap: wrap;
-    }
+      const translated = fakeTranslateToEnglish(text);
+      const roastVersion = addRoastTone(translated);
 
-    .lang-pill {
-      background: #e8f0fe;
-      color: #1967d2;
-      border-radius: 999px;
-      padding: 12px 22px;
-      font-size: 18px;
-      border: 1px solid #d2e3fc;
-    }
+      resultText.textContent = roastVersion;
 
-    .translator {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      align-items: stretch;
-    }
-
-    .panel {
-      background: #fff;
-      border: 1px solid #dadce0;
-      border-radius: 24px;
-      min-height: 360px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .panel-header {
-      padding: 18px 22px;
-      border-bottom: 1px solid #eceff1;
-      font-size: 20px;
-      color: #5f6368;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .panel-body {
-      flex: 1;
-      padding: 0;
-    }
-
-    textarea,
-    .output {
-      width: 100%;
-      height: 100%;
-      min-height: 290px;
-      border: 0;
-      outline: none;
-      resize: none;
-      padding: 24px;
-      font-size: 36px;
-      line-height: 1.35;
-      background: transparent;
-      color: #202124;
-    }
-
-    textarea::placeholder {
-      color: #80868b;
-    }
-
-    .output {
-      background: #f1f3f4;
-      white-space: pre-wrap;
-    }
-
-    .center-controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 16px;
-      margin: 28px 0;
-      flex-wrap: wrap;
-    }
-
-    button {
-      border: 0;
-      border-radius: 999px;
-      padding: 16px 28px;
-      font-size: 18px;
-      cursor: pointer;
-      transition: 0.2s ease;
-      font-weight: 700;
-    }
-
-    .pay-btn {
-      background: #1a73e8;
-      color: white;
-      box-shadow: 0 6px 18px rgba(26, 115, 232, 0.2);
-    }
-
-    .pay-btn:hover {
-      background: #1765cc;
-    }
-
-    .translate-btn {
-      background: #34a853;
-      color: white;
-      box-shadow: 0 6px 18px rgba(52, 168, 83, 0.2);
-    }
-
-    .translate-btn:hover {
-      background: #2b8e46;
-    }
-
-    .translate-btn:disabled {
-      background: #b7c7b9;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .status {
-      text-align: center;
-      font-size: 16px;
-      color: #5f6368;
-      margin-top: 6px;
-      min-height: 24px;
-    }
-
-    .note {
-      max-width: 900px;
-      margin: 24px auto 0;
-      text-align: center;
-      color: #5f6368;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 900px) {
-      .translator {
-        grid-template-columns: 1fr;
-      }
-
-      textarea,
-      .output {
-        font-size: 28px;
-        min-height: 220px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="topbar">
-    <div class="brand"><span>zaloOpa</span> translate</div>
-  </div>
-
-  <div class="wrapper">
-    <div class="lang-row">
-      <div class="lang-pill">Текст</div>
-      <div class="lang-pill">Сайты</div>
-      <div class="lang-pill">Документы</div>
-    </div>
-
-    <div class="translator">
-      <div class="panel">
-        <div class="panel-header">
-          <span>Введите текст</span>
-          <span>русский</span>
-        </div>
-        <div class="panel-body">
-          <textarea id="sourceText" placeholder="Введите текст для перевода"></textarea>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <span>Перевод</span>
-          <span>английский</span>
-        </div>
-        <div class="panel-body">
-          <div id="resultText" class="output">Здесь появится перевод</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="center-controls">
-      <button class="pay-btn" id="payBtn">Оплатить 1 ₽</button>
-      <button class="translate-btn" id="translateBtn" disabled>Перевести</button>
-    </div>
-
-    <div class="status" id="statusText">Сначала оплатите 1 ₽ за перевод</div>
-
-    <div class="note">
-      Это демо-версия интерфейса. Сейчас кнопка оплаты имитирует успешный платеж, а перевод — демо-заглушка.
-      Для реального запуска нужно подключить платежную систему и API перевода через backend.
-    </div>
-  </div>
-
-  <script>
-    const payBtn = document.getElementById("payBtn");
-    const translateBtn = document.getElementById("translateBtn");
-    const sourceText = document.getElementById("sourceText");
-    const resultText = document.getElementById("resultText");
-    const statusText = document.getElementById("statusText");
-
-    let isPaid = false;
-
-    payBtn.addEventListener("click", async () => {
-      statusText.textContent = "Открываем оплату 1 ₽...";
-      payBtn.disabled = true;
-
-      // ДЕМО-ОПЛАТА
-      // Здесь потом будет реальный запрос на backend:
-      // const response = await fetch("/api/create-payment", { method: "POST" })
-      // и редирект на платёжную страницу
-
-      await new Promise(resolve => setTimeout(resolve, 1200));
-
-      isPaid = true;
-      translateBtn.disabled = false;
-      statusText.textContent = "Оплата получена. Теперь можно переводить 1 текст.";
-      payBtn.textContent = "Оплачено ✅";
-    });
-
-    translateBtn.addEventListener("click", async () => {
-      const text = sourceText.value.trim();
-
-      if (!isPaid) {
-        statusText.textContent = "Сначала оплатите 1 ₽.";
-        return;
-      }
-
-      if (!text) {
-        statusText.textContent = "Введите текст для перевода.";
-        return;
-      }
-
+      isPaid = false;
+      payBtn.disabled = false;
+      payBtn.textContent = "Оплатить 1 ₽";
       translateBtn.disabled = true;
-      statusText.textContent = "Переводим...";
-
-      try {
-        // ДЕМО-ПЕРЕВОД
-        // Здесь потом будет реальный запрос на backend:
-        // const response = await fetch("/api/translate", {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify({ text, paymentConfirmed: true })
-        // });
-        // const data = await response.json();
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        const fakeTranslated =
-          "Demo translation:\n\n" +
-          text
-            .split("")
-            .reverse()
-            .join("");
-
-        resultText.textContent = fakeTranslated;
-
-        isPaid = false;
-        payBtn.disabled = false;
-        payBtn.textContent = "Оплатить 1 ₽";
-        translateBtn.disabled = true;
-        statusText.textContent = "Перевод готов. Для следующего перевода снова оплатите 1 ₽.";
-      } catch (error) {
-        statusText.textContent = "Ошибка перевода. Попробуйте ещё раз.";
-        translateBtn.disabled = false;
-      }
-    });
-  </script>
+      statusText.textContent = "Перевод готов. Для следующего перевода снова оплатите 1 ₽.";
+    } catch (error) {
+      statusText.textContent = "Ошибка перевода. Попробуйте ещё раз.";
+      translateBtn.disabled = false;
+    }
+  });
+</script>
 </body>
 </html>
