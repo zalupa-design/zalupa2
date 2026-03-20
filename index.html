@@ -153,9 +153,22 @@
   });
 
   // ФЕЙК ПЕРЕВОД
-  function fakeTranslate(text) {
-    return text.split("").reverse().join("");
+  async function realTranslate(text) {
+  const url = `https://translate.google.ru/translate_a/t?client=x&text=${encodeURIComponent(text)}&hl=en&sl=auto&tl=en`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // структура ответа
+    const translatedText = data.sentences[0].trans;
+
+    return translatedText;
+  } catch (err) {
+    console.error(err);
+    return "Ошибка перевода 😢";
   }
+}
 
   // САРКАСТИЧНЫЙ СТИЛЬ (без оскорблений)
   function roast(text) {
@@ -201,7 +214,7 @@
 
     await new Promise(r => setTimeout(r, 800));
 
-    const translated = fakeTranslate(text);
+    const translated = await realTranslate(text);
     const styled = roast(translated);
 
     resultText.textContent = styled;
